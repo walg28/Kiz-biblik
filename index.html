@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SavoirPlus – Kiz Biblik</title>
+
+<style>
+*{box-sizing:border-box;font-family:Poppins,sans-serif;margin:0;padding:0}
+body{
+background:linear-gradient(135deg,#141e30,#243b55);
+color:#fff;
+overflow-x:hidden;
+}
+section{min-height:100vh;padding:25px;display:none;animation:fadeIn 1s}
+#home{display:block;text-align:center}
+
+h1{font-size:2.3em}
+h2{margin:15px 0}
+h3{margin-bottom:20px}
+
+.btn{
+padding:16px 32px;
+border:none;
+border-radius:40px;
+font-size:1.1em;
+cursor:pointer;
+transition:.3s;
+}
+.btn-play{
+background:linear-gradient(90deg,#00ffcc,#00e676);
+color:#000;
+font-weight:bold;
+animation:glow 2s infinite;
+}
+.btn-play:hover{transform:scale(1.05)}
+
+.header{
+background:rgba(255,255,255,.12);
+padding:30px;
+border-radius:30px;
+animation:pop 1s;
+}
+.main{
+margin-top:40px;
+background:rgba(0,0,0,.45);
+padding:35px;
+border-radius:35px;
+}
+
+.part-btn{
+width:100%;
+background:#333;
+color:#aaa;
+margin:12px 0;
+padding:16px;
+border-radius:30px;
+font-size:1.15em;
+}
+.part-btn.active{
+background:linear-gradient(90deg,#2196f3,#21cbf3);
+color:#fff;
+}
+.part-btn.locked{background:#1c1c1c;color:#555}
+
+#quizBox{
+max-width:650px;
+margin:auto;
+background:rgba(0,0,0,.55);
+padding:35px;
+border-radius:35px;
+}
+
+.answer{
+background:#fff;
+color:#000;
+padding:16px;
+border-radius:25px;
+margin:14px 0;
+cursor:pointer;
+font-weight:bold;
+transition:.3s;
+}
+.answer:hover{background:#e0f7fa;transform:scale(1.05)}
+
+#feedback{
+text-align:center;
+font-size:2em;
+margin-top:25px;
+}
+
+.effect{
+position:fixed;
+top:-40px;
+font-size:28px;
+animation:fall 3s linear forwards;
+z-index:99;
+}
+
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes fall{to{transform:translateY(700px);opacity:0}}
+@keyframes glow{
+0%{box-shadow:0 0 5px #fff}
+50%{box-shadow:0 0 30px #00ffcc}
+100%{box-shadow:0 0 5px #fff}
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<section id="home">
+<div class="header">
+<h1>📖 BYENVINI</h1>
+<p>Sou platfòm <b>SavoirPlus</b></p>
+</div>
+
+<div class="main">
+<h2>Jwèt Kiz Biblik</h2>
+<p>Teste konesans ou nan Bib la</p><br>
+<button class="btn btn-play" onclick="enterGame()">▶️ Antre nan jwèt la</button>
+</div>
+</section>
+
+<!-- MENU -->
+<section id="menu">
+<h2>🎮 Chwazi yon pati</h2>
+<p>🟢 Bon repons = +10 pwen</p>
+<div id="parts"></div>
+<p id="scoreSummary" style="margin-top:20px;font-size:1.3em;"></p>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+<div id="quizBox">
+<h3 id="question"></h3>
+<div id="answers"></div>
+<div id="feedback"></div>
+</div>
+</section>
+
+<!-- AUDIO -->
+<audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-win-2037.mp3"></audio>
+<audio id="failSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.wav"></audio>
+<audio id="unlockSound" src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.wav"></audio>
+
+<script>
+const quizData = [
+[
+{q:"Ki moun Bondye te kreye an premye?",a:["Adan","Èv","Noye","Abraram"],c:0},
+{q:"Konbyen jou Bondye te pran pou kreye mond lan?",a:["5","6","7","8"],c:1},
+{q:"Ki liv ki ouvri Bib la?",a:["Jenèz","Egzòd","Sòm","Levitik"],c:0},
+{q:"Ki moun ki te bati lach la?",a:["Noye","Moyiz","David","Izarak"],c:0},
+{q:"Ki kote Jezi te fèt?",a:["Nazaret","Jerizalèm","Bètleyèm","Galile"],c:2}
+],
+[
+{q:"Ki moun ki te trayi Jezi?",a:["Pyè","Jan","Jida","Toma"],c:2},
+{q:"Konbyen disip Jezi te genyen?",a:["10","11","12","13"],c:2},
+{q:"Ki wa ki te pi saj?",a:["David","Sayil","Salomon","Roboam"],c:2},
+{q:"Ki fanm ki te madanm Izarak?",a:["Sara","Rebeka","Rachèl","Leya"],c:1},
+{q:"Ki pwofèt Bondye te vale pa pwason?",a:["Eli","Elize","Jonas","Amòs"],c:2}
+],
+[
+{q:"Konbyen fwa Pyè te renye Jezi?",a:["1","2","3","4"],c:2},
+{q:"Ki liv ki pa site non Bondye dirèk?",a:["Rit","Estè","Job","Ezra"],c:1},
+{q:"Ki manman Samyèl?",a:["Miryam","Anna","Debora","Sara"],c:1},
+{q:"Premye wa Izrayèl la?",a:["David","Salomon","Sayil","Ezechyas"],c:2},
+{q:"Ki liv gen 10 kòmandman yo?",a:["Jenèz","Levitik","Nonb","Egzòd"],c:3}
+],
+[
+{q:"Ki moun ki ranplase Jida?",a:["Pòl","Banabas","Matyas","Sila"],c:2},
+{q:"Konbyen liv Bib la genyen?",a:["60","62","66","70"],c:2},
+{q:"Papa Abraram?",a:["Nakor","Tèra","Lot","Aran"],c:1},
+{q:"Ki vil Bondye te detwi?",a:["Niniv","Jeriko","Sodòm","Damas"],c:2},
+{q:"Ki liv ki pi kout?",a:["Jid","2 Jan","3 Jan","Obadya"],c:2}
+],
+[
+{q:"Ki moun ki te ekri anpil Sòm?",a:["Salomon","Asaf","David","Moyiz"],c:2},
+{q:"Pwofèt zo sèk yo?",a:["Jeremi","Danyèl","Ezayi","Ezekyèl"],c:3},
+{q:"Ki vil Pòl te konvèti?",a:["Antyòch","Listr","Damas","Wòm"],c:2},
+{q:"Frè Moyiz?",a:["Jozye","Arawon","Kalèb","Elazar"],c:1},
+{q:"Nouvo syèl ak tè nan ki liv?",a:["Ezayi","Danyèl","Zakari","Revelasyon"],c:3}
+]
+];
+
+let part=0,qIndex=0,unlock=1,totalScore=0;
+
+function effect(icon,n=25){
+for(let i=0;i<n;i++){
+let e=document.createElement("div");
+e.className="effect";
+e.innerHTML=icon;
+e.style.left=Math.random()*100+"%";
+document.body.appendChild(e);
+setTimeout(()=>e.remove(),3000);
+}
+}
+
+function enterGame(){
+winSound.play();
+effect("✨",40);
+home.style.display="none";
+menu.style.display="block";
+renderParts();
+}
+
+function renderParts(){
+parts.innerHTML="";
+for(let i=0;i<5;i++){
+let b=document.createElement("button");
+b.className="part-btn "+(i<unlock?"active":"locked");
+b.innerHTML=i<unlock?`📘 Pati ${i+1}`:`🔒 Pati ${i+1}`;
+if(i<unlock)b.onclick=()=>startQuiz(i);
+parts.appendChild(b);
+}
+scoreSummary.innerHTML=`🏆 Total pwen: <b>${totalScore}</b>`;
+}
+
+function startQuiz(p){
+part=p;qIndex=0;
+menu.style.display="none";
+quiz.style.display="block";
+loadQ();
+}
+
+function loadQ(){
+feedback.innerHTML="";
+let q=quizData[part][qIndex];
+question.innerText=q.q;
+answers.innerHTML="";
+q.a.forEach((t,i)=>{
+let d=document.createElement("div");
+d.className="answer";
+d.innerText=t;
+d.onclick=()=>check(i);
+answers.appendChild(d);
+});
+}
+
+function check(i){
+let q=quizData[part][qIndex];
+answers.innerHTML="";
+if(i===q.c){
+totalScore+=10;
+winSound.play();
+feedback.style.color="#00ffcc";
+feedback.innerHTML="🎉 Bon repons +10";
+effect("🎉",30);
+}else{
+failSound.play();
+feedback.style.color="#ff5555";
+feedback.innerHTML="❌ Move repons";
+effect("💥",20);
+}
+
+setTimeout(()=>{
+qIndex++;
+if(qIndex<5){
+loadQ();
+}else{
+unlockSound.play();
+effect("🔑",30);
+quiz.style.display="none";
+menu.style.display="block";
+unlock++;
+renderParts();
+}
+},3500);
+}
+</script>
+
+</body>
+  </html>
+  
